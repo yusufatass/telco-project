@@ -1,119 +1,96 @@
-# Telco Project
+# Telecom Database Project for i2i Systems
 
-## How to Set Up Your Repository
+## 1. Project Overview
+This project is a comprehensive relational database solution developed for i2i Systems to analyze and manage telecommunications data. It includes a robust Oracle XE database schema designed to track customer information, tariff plans, and monthly usage statistics. The project features automated database initialization via Docker and includes a suite of complex SQL queries to extract valuable business insights regarding customer behavior, package utilization, and billing statuses.
 
-**WARNING**: This is a template project. Do not fork this repository.
+## 2. Prerequisites
+To run and interact with this project locally, ensure you have the following software installed:
+*   **Docker Desktop**: Required to spin up the Oracle Database container.
+*   **DBeaver Community Edition** (or any preferred SQL client): Required to connect to the database and execute queries.
 
-Please follow the visual steps below to create and set up the project repository on your own GitHub profile.
+## 3. Setup Instructions
 
-1. Click the **"Use this template"** button at the top right of this page.
+Follow these step-by-step instructions to get the database running:
 
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/547179ce-f2ac-4394-ad63-11e35a7daa74" />
+1.  **Start the Oracle XE Container Manually (Alternative to Docker Compose)**
+    Run the following command in your terminal to pull and start the Oracle Database:
+    ```bash
+    docker run -d --name oracle-xe -p 1521:1521 -e ORACLE_PASSWORD=mysecretpassword gvenzl/oracle-xe:21-slim
+    ```
 
-<br><br>
+2.  **Connect to the Database**
+    Open DBeaver and create a new connection using the following credentials:
+    *   **Host**: `localhost`
+    *   **Port**: `1521`
+    *   **Database**: `XE`
+    *   **Username**: `system`
+    *   **Password**: `mysecretpassword`
 
-2. Select **"Create a new repository"** to generate your own public repository for this task.
+    ![DBeaver Connection](screenshots/dbeaver_connection.png)
 
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/a1893fef-731f-4c9a-bf68-79db6a39bea9" />
+## 4. Database Schema
 
-<br><br>
+The relational database consists of three primary tables:
 
-3. Name your repository as **"telco-project"** and click the **"Create repository"** button.
+*   **`TARIFFS`**: Stores the available mobile plans and their constraints.
+    *   `TARIFF_ID` (Primary Key), `NAME`, `MONTHLY_FEE`, `DATA_LIMIT`, `MINUTE_LIMIT`, `SMS_LIMIT`
+*   **`CUSTOMERS`**: Stores user demographic and account details.
+    *   `CUSTOMER_ID` (Primary Key), `NAME`, `CITY`, `SIGNUP_DATE`
+    *   `TARIFF_ID` (Foreign Key referencing `TARIFFS.TARIFF_ID`)
+*   **`MONTHLY_STATS`**: Tracks the usage and payment status for customers.
+    *   `ID` (Primary Key)
+    *   `CUSTOMER_ID` (Foreign Key referencing `CUSTOMERS.CUSTOMER_ID`)
+    *   `DATA_USAGE`, `MINUTE_USAGE`, `SMS_USAGE`, `PAYMENT_STATUS`
 
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/7fe03880-8d77-4fcd-a076-827aab2328e5" />
+## 5. Query Results
 
-<br><br>
+The `SOLUTIONS.sql` file contains answers to specific analytical questions. Below is a summary of the query results:
 
-Upload all of your solutions to `github.com/yourusername/telco-project`.
+| Query | Description | Row Count |
+| :--- | :--- | :--- |
+| **1.1** | Customers subscribed to Kobiye Destek tariff | 2,483 rows |
+| **1.2** | Newest customer on Kobiye Destek tariff | 1 row |
+| **2.1** | Tariff distribution among customers | 4 rows |
+| **3.1** | Earliest customers to sign up | 35 rows |
+| **3.2** | Distribution of earliest customers across cities | 30 rows |
+| **4.1** | Customers with missing monthly records | 50 rows |
+| **4.2** | Distribution of missing customers across cities | 39 rows |
+| **5.1** | Customers who used at least 75% of data limit | 1,578 rows |
+| **5.2** | Customers who exhausted all package limits | 54 rows |
+| **6.1** | Customers with unpaid fees | 1,454 rows |
+| **6.2** | Payment status distribution across tariffs | 12 rows |
 
----
+**Sample Output (Query 2.1: Tariff Distribution):**
+| TARIFF_NAME | CUSTOMER_COUNT |
+| :--- | :--- |
+| Kurumsal SMS | 2,577 |
+| Genç Dinamik | 2,527 |
+| Kobiye Destek | 2,483 |
+| Çalışan GB | 2,413 |
 
-## Overview
+![Query Results](screenshots/query_results.png)
 
-In this project, you will take on the role of a developer at **i2i Systems**, where you are tasked with fulfilling various team requests through database operations. 
+## 6. Docker Compose
 
-You will receive `.csv` files containing telecom-related data to use for answering the provided questions. Please organize your work as follows:
-* Save your SQL query solutions in a separate file (e.g., `SOLUTIONS.sql`).
-* Include your database table creation scripts, along with their respective indexes and constraints, in another separate file (e.g., `TABLE_CREATION_SCRIPTS.sql`).
+For automated setup, including automatic table creation and data insertion, use Docker Compose. Navigate to the project directory and run:
 
-You must **create your own repository using this template** and upload your work there. 
-Do **not** attempt to push changes directly to this repository or any of its original branches.
+```bash
+docker-compose up -d
+```
 
----
+This spins up the `oracle-xe` container running the `gvenzl/oracle-xe:21-slim` image on port `1521:1521`.
 
-## Operational Requirements
+![Docker PS](screenshots/docker_ps.png)
+![Docker Desktop](screenshots/docker_desktop.png)
 
-1. **Oracle XE Setup**
-  * Create a [Docker](https://www.docker.com/products/docker-desktop/) container running **Oracle XE**.  
-  * Ensure that the database is properly configured and accessible from your local machine.
+## 7. Table Creation
 
-2. **DBeaver Installation**
-  * Download and install [DBeaver](https://dbeaver.io/).  
-  * Establish a connection to your local Oracle XE instance using the DBeaver client.
+The `TABLE_CREATION_SCRIPTS.sql` file contains all necessary DDL statements to generate the schema, apply primary/foreign key constraints, set indexes, and perform bulk `INSERT` operations mapping over 20,000 rows.
 
-3. **Data Import**
-  * Using the provided `.csv` files containing telecom data, design and **create the necessary tables** in Oracle XE. 
-  * **Import the data** from the `.csv` files into your newly created tables, ensuring the schema accurately reflects the provided dataset.
+![Table Creation](screenshots/table_creation.png)
 
-4. **Bonus Tasks (Optional for Extra Points)**
-  * **Docker Compose & Reproducibility:** Provide a `docker-compose.yml` file to spin up the Oracle XE database environment easily. Include clear documentation in your repository (with screenshots) explaining the step-by-step process to reproduce your setup.
-  * **Automated Database Seeding:** Configure your Docker Compose setup to automatically run your database scripts (table creation) upon container initialization.
-
----
-
-## Functional Requirements
-
-You must write SQL queries to address the scenarios listed below. For each query, include comments explaining your approach in **at least three sentences**. Submissions with missing answers or explanations shorter than the required length will **not be evaluated** and will receive **0 points**.
-
----
-
-### 1. Tariff-Based Customer Queries
-
-**1.1** List the customers who are subscribed to the 'Kobiye Destek' tariff.  
-**1.2** Find the newest customer who subscribed to this tariff.
-
----
-
-### 2. Tariff Distribution
-
-**2.1** Find the distribution of tariffs among the customers.
-
----
-
-### 3. Customer Signup Analysis
-
-**3.1** Identify the earliest customers to sign up.  
-*(Hint: The earliest customers might not necessarily have the lowest IDs.)*
-
-**3.2** Find the distribution of these earliest customers across different cities, including the total count for each city.
-
----
-
-### 4. Missing Monthly Records
-
-**4.1** Every customer has a monthly fee, and the dataset contains this month's usage values. However, an insertion error occurred, and some customers' monthly records are missing. Identify the IDs of these missing customers.
-
-**4.2** Find the distribution of these missing customers across different cities.
-
----
-
-### 5. Usage Analysis
-
-**5.1** Find the customers who have used at least 75% of their data limit.  
-**5.2** Identify the customers who have completely exhausted all of their package limits (data, minutes, and SMS).
-
----
-
-### 6. Payment Analysis
-
-**6.1** Find the customers who have unpaid fees.  
-**6.2** Find the distribution of all payment statuses across the different tariffs.
-
----
-
-## Notes
-
-* You have the creative freedom to design the database schema as you see fit, based on the provided dataset.
-* Pay close attention to applying the appropriate data types and constraints when creating your tables.
-* You may use DBeaver or SQL*Plus to handle the `.csv` data imports into Oracle XE.
-* Thoroughly test each query and document both the SQL statement and its resulting output in your submission.
+## 8. Notes
+*   Turkish characters (ş, ı, ç, ğ, ü, ö) are preserved using UTF-8 encoding throughout the database initialization.
+*   `CUSTOMER_ID` mapping was carefully handled between CSV files to ensure relational integrity (mapping sequential stats to actual Customer IDs).
+*   50 customers intentionally have no monthly records (designed specifically to test query 4.1).
+*   All queries have been tested and verified for logical accuracy in DBeaver.
